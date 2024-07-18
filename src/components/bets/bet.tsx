@@ -172,7 +172,7 @@ function BetTableRow({ data, lay }: BetTableBodyProps) {
   const stake_img =
     data.bet_info['exchange'] !== 'betfair' ? betfair : smarkets;
   const lay_img = stake_img !== smarkets ? smarkets : betfair;
-
+  console.log('edf');
   const stake = data.bet_profit[!lay ? 'back_stake' : 'lay_stake'];
   const timeAgo = new TimeAgo('en-US');
   const currentTime = Date.now();
