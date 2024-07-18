@@ -14,6 +14,11 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { MongoClient } from 'mongodb';
+
+const uri =
+  'mongodb+srv://admin:RmQPhObcTdZeLYUX@pro-item-tracker.ifybd.mongodb.net';
+const client = new MongoClient(uri);
 
 class AppUpdater {
   constructor() {
@@ -71,8 +76,8 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 1424,
+    height: 1028,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: app.isPackaged
@@ -83,6 +88,10 @@ const createWindow = async () => {
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url); // Open URL in user's browser.
+    return { action: 'deny' }; // Prevent the app from opening the URL.
+  });
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
@@ -94,6 +103,18 @@ const createWindow = async () => {
     }
   });
 
+  async function addItem(item: any, collection_name: string) {
+    const collection = client.db('oddsmonkey').collection(collection_name);
+    const result = await collection.insertOne(item);
+    return result.ops[0];
+  }
+  ipcMain.handle('fetch-items', async (event, collection_name: string) => {
+    return await fetchItems(collection_name);
+  });
+
+  ipcMain.handle('add-item', async (event, item, collection_name: string) => {
+    return await addItem(item, collection_name);
+  });
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -123,7 +144,23 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
+async function fetchItems(collection_name: string) {
+  const collection = client.db('oddsmonkey').collection(collection_name);
+  const data = await collection.find({}).toArray();
+  //   if (collection_name === 'balance') {
+  //     console.log(data);
+  //   }
+  mainWindow!.webContents.send(`${collection_name}-fetched`, data);
+  return data;
+}
+fetchItems('config'); 
+fetchItems('pending_bets');
+fetchItems('balance'); 
+setInterval(() => {
+  fetchItems('pending_bets');
+  fetchItems('balance');
+  fetchItems('config');
+}, 10000);
 app
   .whenReady()
   .then(() => {

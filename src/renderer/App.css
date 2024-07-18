@@ -26,7 +26,8 @@ button {
   border: none;
   appearance: none;
   font-size: 1.3rem;
-  box-shadow: 0px 8px 28px -6px rgba(24, 39, 75, 0.12),
+  box-shadow:
+    0px 8px 28px -6px rgba(24, 39, 75, 0.12),
     0px 18px 88px -4px rgba(24, 39, 75, 0.14);
   transition: all ease-in 0.1s;
   cursor: pointer;
@@ -59,4 +60,22 @@ a:hover {
   justify-content: center;
   align-items: center;
   margin: 20px 0;
+}
+.config-number-input {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  width: 50px;
+}
+.config-number-input::placeholder {
+  color: black;
+}
+.config-currency-sign {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.8em;
+  color: black;
 }
