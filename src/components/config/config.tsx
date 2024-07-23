@@ -9,13 +9,22 @@ type configObj = {
 };
 export function Config() {
   const [config, setConfig] = useState<configObj>();
+  const [running, setRunning] = useState(false);
   useEffect(() => {
-    const handleDataFetched = (fetchedData: any) => {
-      setConfig(fetchedData[0])
+    const handleConfigFetched = (fetchedData: any) => {
+      setConfig(fetchedData[0]);
     };
-    window.electron.ipcRenderer.onConfigFetched(handleDataFetched);
+    const handleHeartbeat = (fetchedData: any) => {
+      const last_active =
+        new Date().getTime() / 1000 - fetchedData[0].last_active < 300;
+      setRunning(last_active);
+    };
+    window.electron.ipcRenderer.onConfigFetched(handleConfigFetched);
+    window.electron.ipcRenderer.onHeartbeatFetched(handleHeartbeat);
+
     return () => {
       window.electron.ipcRenderer.onConfigFetched(() => {});
+      window.electron.ipcRenderer.onHeartbeatFetched(() => {});
     };
   }, []);
   return (
@@ -36,9 +45,11 @@ export function Config() {
             <NumberInput value={config.MAX_LIABILITY} label={'max liability'} />
             <NumberInput value={config.MIN_BALANCE} label={'min balance'} />
           </div>
-          <Button>{!config.USE_MONEY ? 'Use Cash' : "Don't use Cash"}</Button>
-          <Button>Start</Button>
-          <Button>Update Config</Button>
+          <Button variant="contained">
+            {!config.USE_MONEY ? 'Use Cash' : "Don't use Cash"}
+          </Button>
+          <Button variant="contained">{running ? 'Stop' : 'Start'}</Button>
+          <Button variant="contained">Update Config</Button>
         </Box>
       )}
     </>

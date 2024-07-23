@@ -37,6 +37,10 @@ const electronHandler = {
       ipcRenderer.on('config-fetched', (_event, data) => {
         return callback(data);
       }),
+    onHeartbeatFetched: (callback: (data: any) => void) =>
+      ipcRenderer.on('heartbeat-fetched', (_event, data) => {
+        return callback(data);
+      }),
   },
 };
 contextBridge.exposeInMainWorld('electron', electronHandler);

@@ -37,6 +37,7 @@ export interface BOdds {
   avg_lay_odds: number;
   all_back_odds: number[];
   all_lay_odds: number[];
+  commission: number;
 }
 
 export interface BProfit {
@@ -55,6 +56,7 @@ export interface BProfit {
   };
   exchange_matched: {
     odds: number[];
+    staked: number[];
     matched: number[];
   };
 }

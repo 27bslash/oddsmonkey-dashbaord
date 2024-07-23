@@ -11,7 +11,6 @@ type AppContextType = {
   setOrderBy: any;
   setAllBets: any;
   balance: { smarkets: number; betfair: number };
-  updateAllBets: (arr: BData[]) => void;
 };
 const AppContext = createContext<AppContextType | null>(null);
 type AppContextProviderProps = {

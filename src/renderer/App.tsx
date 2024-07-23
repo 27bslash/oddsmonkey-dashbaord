@@ -1,11 +1,10 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
 import './App.css';
-import Bets from '../components/bets/bets';
+import Bets from '../../../../python/oddsmonkey-d/src/components/bets/bets';
 import { useEffect, useState } from 'react';
-import { BData, BetType } from '../../types';
+import { BData, BetType } from '../../../../python/oddsmonkey-d/types';
 import AppContextProvider from './useAppContext';
-import { Config } from '../components/config/config';
+import { Config } from '../../../../python/oddsmonkey-d/src/components/config/config';
 
 function shuffleArray(array: any[]) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -24,11 +23,6 @@ function Hello() {
   const [orderBy, setOrderBy] = useState<keyof BetType>('bet_unix_time');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [balance, setBalance] = useState({ smarkets: 0, betfair: 0 });
-
-  const updateAllBets = (arr: BData[]) => {
-    console.log(arr[0].bet_info.event_name);
-    setAllBets([...arr]);
-  };
 
   useEffect(() => {
     const handleDataFetched = (fetchedData: BData[]) => {
@@ -62,7 +56,6 @@ function Hello() {
     sortDirection,
     setSortDirection,
     setAllBets,
-    updateAllBets,
   };
 
   return (

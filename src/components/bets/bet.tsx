@@ -8,13 +8,12 @@ import {
   TableSortLabel,
   Typography,
 } from '@mui/material';
-import { blue, green, grey } from '@mui/material/colors';
+import { blue, green, grey, red } from '@mui/material/colors';
 import { ReactNode, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BData, BetType, TestData } from '../../../types';
+import { BData, BProfit } from '../../../types';
 import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en';
-import icon from '../../../assets/icon.svg';
 import smarkets from '../../icons/smarkets.png';
 import betfair from '../../icons/betfair.png';
 
@@ -172,7 +171,6 @@ function BetTableRow({ data, lay }: BetTableBodyProps) {
   const stake_img =
     data.bet_info['exchange'] !== 'betfair' ? betfair : smarkets;
   const lay_img = stake_img !== smarkets ? smarkets : betfair;
-  console.log('edf');
   const stake = data.bet_profit[!lay ? 'back_stake' : 'lay_stake'];
   const timeAgo = new TimeAgo('en-US');
   const currentTime = Date.now();
@@ -228,32 +226,20 @@ function BetTableRow({ data, lay }: BetTableBodyProps) {
       </BetTableCell>
       {data.bet_profit['back_matched'] &&
       data.bet_profit['exchange_matched'] &&
-      data.bet_profit['exchange_matched']['odds'] ? (
-        <>
-          <BetTableCell>
-            {!lay
-              ? data.bet_profit['back_matched']['odds']
-              : data.bet_profit['exchange_matched']['odds']}
-          </BetTableCell>
-
-          <BetTableCell>
-            £
-            {!lay
-              ? data.bet_profit['back_matched']['matched']
-              : data.bet_profit['exchange_matched']['matched']}
-          </BetTableCell>
-        </>
+      data.bet_profit['exchange_matched']['odds'] &&
+      data.bet_profit['back_matched']['odds'] ? (
+        <MatchedCell lay={lay} data={data} />
       ) : (
         <>
-          <BetTableCell>{0}</BetTableCell>
+          <BetTableCell>{data.bet_odds.back_odds}</BetTableCell>
           <BetTableCell>{stake}</BetTableCell>
+          <BetTableCell color={green['400']}>
+            {!lay
+              ? data.bet_profit['back_win_profit']
+              : data.bet_profit['lay_win_profit']}
+          </BetTableCell>
         </>
       )}
-      <BetTableCell color={green['400']}>
-        {!lay
-          ? data.bet_profit['back_win_profit']
-          : data.bet_profit['lay_win_profit']}
-      </BetTableCell>
     </TableRow>
   );
 }
@@ -261,6 +247,89 @@ type BetTableCellProps = {
   color?: string;
   children: ReactNode;
 };
+type MatchedCellProps = {
+  lay: boolean;
+  data: BData;
+};
+function MatchedCell({ data, lay }: MatchedCellProps) {
+  const d: { [key: string]: { [key: string]: number } } = { back: {}, lay: {} };
+  const update_obj = (matchData: BProfit['back_matched'], key: string) => {
+    matchData.odds.forEach((x, i: number) => {
+      if (d[key][x]) {
+        d[key][x] += matchData.matched[i];
+      } else {
+        d[key][x] = matchData.matched[i];
+      }
+    });
+  };
+  update_obj(data.bet_profit.exchange_matched, 'lay');
+  update_obj(data.bet_profit.back_matched, 'back');
+  let back_wins = 0;
+  let lay_liability = 0;
+  let back_liability = 0;
+  let lay_wins = 0;
+
+  //   back_wins = round(back_stake * (back_odds - 1), 2);
+  //   lay_liability = round(lay_stake * (lay_odds - 1), 2);
+  //   back_win_profit = round(back_wins - lay_liability, 2);
+  //   lay_wins = round(lay_stake * (1 - commission), 2);
+  //   lay_win_profit = round(lay_wins - back_stake, 2);
+  Object.entries(d['back']).map((x) => {
+    back_wins += (+x[0] - 1) * x[1];
+    back_liability += x[1];
+  });
+  Object.entries(d['lay']).map((x) => {
+    lay_wins += +x[1] * (1 - data.bet_odds.commission);
+    lay_liability += (+x[0] - 1) * x[1];
+  });
+  const lay_win_profit = lay_wins - back_liability;
+  const back_win_profit = back_wins - lay_liability;
+  return (
+    <>
+      <BetTableCell>
+        {!lay
+          ? Object.keys(d['back']).map((x, i) => {
+              return <Typography key={i}>{x}</Typography>;
+            })
+          : Object.keys(d['lay']).map((x, i) => {
+              return <Typography key={i}>{x}</Typography>;
+            })}
+      </BetTableCell>
+      <BetTableCell>
+        {!lay
+          ? Object.values(d['back']).map((x, i) => {
+              return <Typography key={i}>£{x.toFixed(2)}</Typography>;
+            })
+          : Object.values(d['lay']).map((x, i) => {
+              return <Typography key={i}>£{x.toFixed(2)}</Typography>;
+            })}
+      </BetTableCell>
+      <BetTableCell>
+        {!lay
+          ? Object.values(d['back']).map((x, i) => {
+              return (
+                <Typography
+                  color={back_win_profit >= 0 ? green['400'] : red['400']}
+                  key={i}
+                >
+                  £{back_win_profit.toFixed(2)}
+                </Typography>
+              );
+            })
+          : Object.values(d['lay']).map((x, i) => {
+              return (
+                <Typography
+                  color={lay_win_profit >= 0 ? green['400'] : red['400']}
+                  key={i}
+                >
+                  £{lay_win_profit.toFixed(2)}
+                </Typography>
+              );
+            })}
+      </BetTableCell>
+    </>
+  );
+}
 function BetTableCell({ color, children }: BetTableCellProps) {
   if (!color) color = 'white';
   return (

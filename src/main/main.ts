@@ -9,11 +9,11 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain } from 'electron'; 
 import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
+import log from 'electron-log'; 
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import { resolveHtmlPath } from './util';  
 import { MongoClient } from 'mongodb';
 
 const uri =
@@ -145,7 +145,7 @@ app.on('window-all-closed', () => {
   }
 });
 async function fetchItems(collection_name: string) {
-  const collection = client.db('oddsmonkey').collection(collection_name);
+  const collection = client.db('oddsmonkey').collection(collection_name); 
   const data = await collection.find({}).toArray();
   //   if (collection_name === 'balance') {
   //     console.log(data);
@@ -160,6 +160,7 @@ setInterval(() => {
   fetchItems('pending_bets');
   fetchItems('balance');
   fetchItems('config');
+  fetchItems('heartbeat');
 }, 10000);
 app
   .whenReady()

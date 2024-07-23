@@ -7,7 +7,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { blue, green, grey } from '@mui/material/colors';
+import { blue, green, grey, red } from '@mui/material/colors';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import {
   BData,
@@ -35,18 +35,22 @@ const flat = (obj: any, out: any) => {
 
 type BetsProps = {
   allBets: BData[];
-  updateAllBets: (bets: BData[]) => void;
+  updateAllBets: (bets: BData[]) => boolean;
 };
 function Bets() {
   const [filteredBets, setFilteredBets] = useState<BData[]>();
+  const [sortedData, setSortedData] = useState<BData[]>();
   //   const [k, setK] = useState<keyof BData>('bet_info');
   //   const [orderBy, setOrderBy] = useState<keyof BetType>('bet_unix_time');
   //   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [showAll, setShowAll] = useState(true);
+  const [filter, setFilter] = useState<'active' | 'day' | 'week' | 'all time'>(
+    'active',
+  );
+
   const [loading, setLoading] = useState(true); // Track loading state
   const {
     allBets,
-    updateAllBets,
+    setAllBets,
     orderBy,
     setOrderBy,
     sortDirection,
@@ -55,20 +59,31 @@ function Bets() {
     setK,
   } = useAppContext();
   useEffect(() => {
-    setLoading(true);
-    if (!allBets) return;
+    setLoading(true); // Trigger loading state immediately
+
+    if (!allBets) {
+      setLoading(false); // Stop loading if no bets are available
+      return;
+    }
+
     const sorted = sortBets(allBets, k);
-    if (!sorted) return;
+    if (!sorted) {
+      setLoading(false); // Stop loading if sorting failed
+      return;
+    }
+
     if (allBets[0].bet_info.event_name !== sorted[0].bet_info.event_name) {
       console.log(
         'updating bets',
         allBets[0].bet_info.event_name,
         sorted[0].bet_info.event_name,
       );
-      updateAllBets(sorted);
+      setSortedData([...sorted]);
     }
-    setLoading(false);
+
+    setLoading(false); // Stop loading after sorting and any updates
   }, [orderBy, sortDirection, allBets]);
+
   const sortBets = (arr: BData[], key?: keyof BData) => {
     if (!key) key = k;
 
@@ -93,31 +108,34 @@ function Bets() {
   };
 
   useEffect(() => {
-    if (!allBets) return;
+    if (!sortedData) return;
     filterBets();
-  }, [showAll, allBets]);
+  }, [filter, sortedData]);
   const filterBets = () => {
     // console.log('filter bets', showAll, allBets);
-    const f = allBets!.filter((x) => {
-      if (!showAll) {
+    const f = sortedData!.filter((x) => {
+      if (filter === 'active') {
         return x.bet_info.unix_time > new Date().getTime() / 1000;
+      } else if (filter === 'day') {
+        return x.bet_info.unix_time > new Date().getTime() / 1000 - 86400;
+      } else if (filter === 'week') {
+        return x.bet_info.unix_time > new Date().getTime() / 1000 - 604800;
       }
       return x;
     });
     setFilteredBets(f);
   };
-
   return (
     <Box
       padding={5}
       sx={{ backgroundColor: '#212121', overflowY: 'scroll', height: '400px' }}
     >
-      {filteredBets && !loading && (
+      {filteredBets && (
         <>
           <Box>
             <StatTable
-              showAll={showAll}
-              setShowAll={setShowAll}
+              filter={filter}
+              setFilter={setFilter}
               filteredBets={filteredBets}
             />
           </Box>
@@ -130,11 +148,11 @@ function Bets() {
   );
 }
 type StatTableProps = {
-  showAll: boolean;
-  setShowAll: React.SetStateAction<any>;
+  filter: string;
+  setFilter: React.SetStateAction<any>;
   filteredBets: BData[];
 };
-function StatTable({ showAll, setShowAll, filteredBets }: StatTableProps) {
+function StatTable({ filter, setFilter, filteredBets }: StatTableProps) {
   const [totals, setTotals] = useState<string[]>([]);
 
   const { allBets, balance } = useAppContext();
@@ -162,8 +180,33 @@ function StatTable({ showAll, setShowAll, filteredBets }: StatTableProps) {
   }, [allBets, filteredBets]);
   return (
     <Box display={'flex'}>
-      <Button onClick={() => setShowAll((prev: boolean) => !prev)}>
-        show all
+      <Button
+        variant="contained"
+        sx={{ backgroundColor: filter === 'active' ? 'blue' : 'transparent' }}
+        onClick={() => setFilter('active')}
+      >
+        active
+      </Button>
+      <Button
+        variant="contained"
+        sx={{ backgroundColor: filter === 'day' ? 'blue' : 'transparent' }}
+        onClick={() => setFilter('day')}
+      >
+        Day
+      </Button>
+      <Button
+        variant="contained"
+        sx={{ backgroundColor: filter === 'week' ? 'blue' : 'transparent' }}
+        onClick={() => setFilter('week')}
+      >
+        Week
+      </Button>
+      <Button
+        variant="contained"
+        sx={{ backgroundColor: filter === 'all time' ? 'blue' : 'transparent' }}
+        onClick={() => setFilter('all time')}
+      >
+        All Time
       </Button>
       <>
         <Box
@@ -172,12 +215,11 @@ function StatTable({ showAll, setShowAll, filteredBets }: StatTableProps) {
           }}
         >
           <Table>
-            <TableHeader showAll={showAll} />
+            <TableHeader filter={filter} />
             <StatTableBody totals={totals} balance={balance} />
           </Table>
         </Box>
       </>
-
       {/* <Box
         width="40%"
         sx={{
@@ -197,8 +239,13 @@ function StatTable({ showAll, setShowAll, filteredBets }: StatTableProps) {
 
 export default Bets;
 
-function TableHeader({ showAll }: { showAll: boolean }) {
-  const s = showAll ? 'Total' : 'Current';
+function TableHeader({ filter }: { filter: string }) {
+  let s = filter === 'all time' ? 'Total' : 'Current';
+  if (filter === 'week') {
+    s = 'weekly';
+  } else if (filter === 'day') {
+    s = 'daily';
+  }
   return (
     <TableRow>
       <TableCell>
@@ -208,10 +255,16 @@ function TableHeader({ showAll }: { showAll: boolean }) {
         <Typography color="white">Betfair Balance</Typography>
       </TableCell>
       <TableCell>
-        <Typography color="white">{`${s} profit`}</Typography>
+        <Typography
+          textTransform={'capitalize'}
+          color="white"
+        >{`${s} profit`}</Typography>
       </TableCell>
       <TableCell>
-        <Typography color="white">{`${s} liability`}</Typography>
+        <Typography
+          textTransform={'capitalize'}
+          color="white"
+        >{`${s} liability`}</Typography>
       </TableCell>
     </TableRow>
   );
