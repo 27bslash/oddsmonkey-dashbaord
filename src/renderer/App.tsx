@@ -1,5 +1,5 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
+import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import Bets from '../../../../python/oddsmonkey-d/src/components/bets/bets';
 import { useEffect, useState } from 'react';
 import { BData, BetType } from '../../../../python/oddsmonkey-d/types';
@@ -26,10 +26,9 @@ function Hello() {
 
   useEffect(() => {
     const handleDataFetched = (fetchedData: BData[]) => {
-      //   const flattenedBets = fetchedData.map((bet) => flat(bet, {}));
-      //   const sorted = sortBets(shuffled, k);
-      //   console.log(k, orderBy, sortDirection, 'test');
-      setAllBets(shuffleArray([...fetchedData]));
+      if (JSON.stringify(fetchedData) === JSON.stringify(allBets)) return;
+
+      setAllBets(fetchedData);
 
       //   const filteredData = fetchedData.filter((x) => {
       //     return x.bet_info.unix_time > new Date().getTime() / 1000;
@@ -60,14 +59,12 @@ function Hello() {
 
   return (
     <AppContextProvider value={value}>
-      <>
-        {allBets && (
-          <>
-            <Config />
-            <Bets />
-          </>
-        )}
-      </>
+      {allBets && (
+        <>
+          <Config />
+          <Bets />
+        </>
+      )}
     </AppContextProvider>
   );
 }
