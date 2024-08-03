@@ -62,10 +62,11 @@ a:hover {
   margin: 20px 0;
 }
 .config-number-input {
-  background-color: transparent;
+  background-color: rgb(137, 130, 130);
   outline: none;
   border: none;
   width: 50px;
+  cursor: pointer;
 }
 .config-number-input::placeholder {
   color: black;
@@ -78,4 +79,26 @@ a:hover {
   pointer-events: none;
   font-size: 0.8em;
   color: black;
+}
+.editable-text-input {
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  padding: 0;
+  width: 60px;
+  letter-spacing: 0.00938em;
+  background: inherit;
+}
+.editable-text-input:focus-visible {
+  outline: none;
+}
+.editable-text-input::-webkit-inner-spin-button,
+.editable-text-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+#total-liability:hover {
+  cursor: help;
 }
