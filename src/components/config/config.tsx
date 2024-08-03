@@ -10,14 +10,44 @@ type configObj = {
 export function Config() {
   const [config, setConfig] = useState<configObj>();
   const [running, setRunning] = useState(false);
+  const [query, setQuery] = useState({});
+  const [update, setUpdate] = useState({});
+  const [status, setStatus] = useState('');
+
+  const handleUpdate = async (
+    updateType: 'updateRunningState' | 'updateConfig',
+  ) => {
+    try {
+      let updateObj = {
+        collectionName: 'config',
+        query: {},
+        update: { $set: update },
+      };
+      if (updateType === 'updateRunningState') {
+        updateObj = {
+          collectionName: 'config',
+          query: {},
+          update: { $set: { FORCE_STOP: running } },
+        };
+        setRunning(!running);
+      }
+      const modifiedCount =
+        await window.electron.ipcRenderer.updateItem(updateObj);
+      setStatus(`Modified ${modifiedCount} documents.`);
+    } catch (error) {
+      setStatus(`Error: ${error.message}`);
+    }
+  };
+  console.log(query, update, status);
   useEffect(() => {
     const handleConfigFetched = (fetchedData: any) => {
       setConfig(fetchedData[0]);
     };
     const handleHeartbeat = (fetchedData: any) => {
       const last_active =
-        new Date().getTime() / 1000 - fetchedData[0].last_active < 300;
+        new Date().getTime() / 1000 - fetchedData[0].last_active < 15;
       setRunning(last_active);
+      console.log(fetchedData[0].last_active,last_active);
     };
     window.electron.ipcRenderer.onConfigFetched(handleConfigFetched);
     window.electron.ipcRenderer.onHeartbeatFetched(handleHeartbeat);
@@ -41,27 +71,61 @@ export function Config() {
             <NumberInput
               value={config.SINGLE_BET_MAX}
               label={'Single Bet Max'}
+              setUpdate={setUpdate}
             />
-            <NumberInput value={config.MAX_LIABILITY} label={'max liability'} />
-            <NumberInput value={config.MIN_BALANCE} label={'min balance'} />
+            <NumberInput
+              value={config.MAX_LIABILITY}
+              label={'max liability'}
+              setUpdate={setUpdate}
+            />
+            <NumberInput
+              value={config.MIN_BALANCE}
+              label={'min balance'}
+              setUpdate={setUpdate}
+            />
           </div>
           <Button variant="contained">
             {!config.USE_MONEY ? 'Use Cash' : "Don't use Cash"}
           </Button>
-          <Button variant="contained">{running ? 'Stop' : 'Start'}</Button>
-          <Button variant="contained">Update Config</Button>
+          <Button
+            onClick={() => handleUpdate('updateRunningState')}
+            variant="contained"
+            color={!running ? 'success' : 'error'}
+          >
+            {running ? 'Stop' : 'Start'}
+          </Button>
+          <Button
+            onClick={() => handleUpdate('updateConfig')}
+            variant="contained"
+          >
+            Update Config
+          </Button>
         </Box>
       )}
     </>
   );
 }
 
-function NumberInput({ value, label }: { value: number; label: string }) {
+function NumberInput({
+  value,
+  label,
+  setUpdate,
+}: {
+  value: number;
+  label: string;
+  setUpdate: React.Dispatch<React.SetStateAction<any>>;
+}) {
   const placeholder = value;
   const [inputValue, setinputValue] = useState(String(placeholder));
-
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setinputValue(e.target.value);
+    const labelText = e.target.nextSibling?.textContent
+      ?.toUpperCase()
+      .replace(/\s/g, '_');
+    if (!labelText) {
+      return;
+    }
+    setUpdate((prev: any) => ({ ...prev, [labelText]: +e.target.value }));
   };
   return (
     <div
@@ -79,6 +143,7 @@ function NumberInput({ value, label }: { value: number; label: string }) {
         onChange={handleChange}
         min="1"
         max="1000"
+        step={5}
       ></input>
       <label>
         <Typography padding={0.3} textTransform={'capitalize'}>
