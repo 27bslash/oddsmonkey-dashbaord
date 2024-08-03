@@ -9,11 +9,11 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron'; 
+import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import log from 'electron-log'; 
+import log from 'electron-log';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';  
+import { resolveHtmlPath } from './util';
 import { MongoClient } from 'mongodb';
 
 const uri =
@@ -78,6 +78,9 @@ const createWindow = async () => {
     show: false,
     width: 1424,
     height: 1028,
+    fullscreen: true,
+    x: -1800,
+    y: 300,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: app.isPackaged
@@ -100,13 +103,20 @@ const createWindow = async () => {
       mainWindow.minimize();
     } else {
       mainWindow.show();
-    }
+    } 
   });
 
   async function addItem(item: any, collection_name: string) {
     const collection = client.db('oddsmonkey').collection(collection_name);
     const result = await collection.insertOne(item);
-    return result.ops[0];
+    return result; 
+  }
+  async function updateItem({ collectionName, query, update }) {
+    console.log(collectionName, query, update);
+    const collection = client.db('oddsmonkey').collection(collectionName);
+    const result = await collection.updateOne(query, update);
+    console.log(result.modifiedCount);
+    return result.modifiedCount;
   }
   ipcMain.handle('fetch-items', async (event, collection_name: string) => {
     return await fetchItems(collection_name);
@@ -115,6 +125,12 @@ const createWindow = async () => {
   ipcMain.handle('add-item', async (event, item, collection_name: string) => {
     return await addItem(item, collection_name);
   });
+  ipcMain.handle(
+    'update-document',
+    async (event, { collectionName, query, update }) => {
+      return await updateItem({ collectionName, query, update });
+    },
+  );
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -145,7 +161,7 @@ app.on('window-all-closed', () => {
   }
 });
 async function fetchItems(collection_name: string) {
-  const collection = client.db('oddsmonkey').collection(collection_name); 
+  const collection = client.db('oddsmonkey').collection(collection_name);
   const data = await collection.find({}).toArray();
   //   if (collection_name === 'balance') {
   //     console.log(data);
@@ -153,9 +169,10 @@ async function fetchItems(collection_name: string) {
   mainWindow!.webContents.send(`${collection_name}-fetched`, data);
   return data;
 }
-fetchItems('config'); 
+fetchItems('config');
 fetchItems('pending_bets');
-fetchItems('balance'); 
+fetchItems('heartbeat');
+fetchItems('balance');
 setInterval(() => {
   fetchItems('pending_bets');
   fetchItems('balance');

@@ -25,6 +25,15 @@ const electronHandler = {
       ipcRenderer.invoke('fetch-items', collection_name),
     addItem: (item: any, collection_name: string) =>
       ipcRenderer.invoke('add-item', item, collection_name),
+    updateItem: ({
+      collectionName,
+      query, 
+      update,
+    }: {
+      collectionName: string;
+      query: { [key: string]: any };
+      update: { [key: string]: any };
+    }) => ipcRenderer.invoke('update-document',{ collectionName, query, update}),
     onDataFetched: (callback: (data: any) => void) =>
       ipcRenderer.on('pending_bets-fetched', (_event, data) => {
         return callback(data);
