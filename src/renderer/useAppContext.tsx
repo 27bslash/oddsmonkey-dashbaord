@@ -1,11 +1,17 @@
-import { ReactNode, createContext, useContext } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 import { BData, BetType } from '../../types';
 
 type AppContextType = {
   allBets: BData[] | undefined;
   k: keyof BData;
   orderBy: keyof BetType;
-  setK: React.Dispatch<React.SetStateAction<keyof BData>>;
+  setK: Dispatch<SetStateAction<keyof BData>>;
   setSortDirection: any;
   sortDirection: 'desc' | 'asc';
   setOrderBy: any;
