@@ -32,6 +32,8 @@ export interface BOdds {
   lay_odds: number[];
   max_bet: number;
   back_liquidity: number[];
+  total_back_liquidity: number;
+  total_lay_liquidity: number;
   exchange_liquidity: number[];
   avg_back_odds: number;
   avg_lay_odds: number;
