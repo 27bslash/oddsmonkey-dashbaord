@@ -98,9 +98,9 @@ function Bets() {
       if (filter === 'active') {
         return x.bet_info.unix_time > new Date().getTime() / 1000 - 5400;
       } else if (filter === 'day') {
-        return x.bet_info.unix_time > new Date().getTime() / 1000 - 86400;
+        return x.bet_info.bet_unix_time > new Date().getTime() / 1000 - 86400;
       } else if (filter === 'week') {
-        return x.bet_info.unix_time > new Date().getTime() / 1000 - 604800;
+        return x.bet_info.bet_unix_time > new Date().getTime() / 1000 - 604800;
       }
       return x;
     });
