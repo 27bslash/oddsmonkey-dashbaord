@@ -88,8 +88,9 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
             })}
       </BetTableCell>
       <BetTableCell>
-        {!lay
-          ? Object.values(backLay['back']).map((x, i) => {
+        {!lay ? (
+          <>
+            {Object.values(backLay['back']).map((x, i) => {
               return (
                 <EditableCell
                   data={data}
@@ -99,8 +100,11 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
                   profit={x}
                 />
               );
-            })
-          : Object.values(backLay['lay']).map((x, i) => {
+            })}
+          </>
+        ) : (
+          <>
+            {Object.values(backLay['lay']).map((x, i) => {
               return (
                 <EditableCell
                   data={data}
@@ -111,16 +115,23 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
                 />
               );
             })}
+          </>
+        )}
       </BetTableCell>
       <BetTableCell>
         {!lay
           ? Object.values(backLay['back']).map((x, i) => {
               return (
                 <Typography
-                  color={backWinProfit >= 0 ? green['400'] : red['400']}
+                  color={
+                    data.bet_profit.back_win_profit >= 0
+                      ? green['400']
+                      : red['400']
+                  }
                   key={i}
                 >
-                  £{backWinProfit.toFixed(2)}
+                  {/* £{backWinProfit.toFixed(2)} £ */}
+                  {data.bet_profit.back_win_profit.toFixed(2)}
                 </Typography>
               );
             })
@@ -130,10 +141,20 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
                   color={layWinProfit >= 0 ? green['400'] : red['400']}
                   key={i}
                 >
-                  £{layWinProfit.toFixed(2)}
+                  {/* £{layWinProfit.toFixed(2)} */}
+                  £{data.bet_profit.lay_win_profit.toFixed(2)}
                 </Typography>
               );
             })}
+      </BetTableCell>
+      <BetTableCell>
+        £
+        {(
+          Math.min(
+            data.bet_odds.total_back_liquidity,
+            data.bet_odds.total_lay_liquidity,
+          ) * 0.8
+        ).toFixed(2)}
       </BetTableCell>
     </>
   );
