@@ -1,4 +1,4 @@
-import { TableHead, TableRow, Typography, TableCell } from '@mui/material';
+import { TableHead, TableRow, Typography, TableCell, Tab, Table } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { OrderableCell } from './OrderableCell';
 
@@ -69,6 +69,11 @@ function BetTableHead({ updateSort }: any) {
             PROFIT
           </Typography>
         </OrderableCell>
+        <TableCell>
+          <Typography fontSize={'11.5px'} color={grey['500']}>
+            MAX BET
+          </Typography>
+        </TableCell>
       </TableRow>
     </TableHead>
   );
