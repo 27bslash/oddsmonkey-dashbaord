@@ -1,6 +1,6 @@
 import { Box, Table } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { BData } from '../../../types';
+import { BData, BProfit } from '../../../types';
 import StatTableBody from './balanceTable/balanceTable';
 import TableHeader from './balanceTable/BalanceTableHeader';
 import FilterButtons from './FilterButtons';
@@ -30,6 +30,47 @@ function StatTable({
   const { allBets, balance } = useAppContext();
   useEffect(() => {
     if (!filteredBets) return;
+
+    const updateProfit = (matchData: BProfit['back_matched'], key: string) => {
+      const backLay: any = { back: {}, lay: {} };
+      matchData.odds.forEach((odd, i) => {
+        backLay[key][odd] = (backLay[key][odd] || 0) + matchData.matched[i];
+      });
+      if (!Object.keys(backLay[key]).length) {
+        backLay[key] = { 0: 0 };
+      }
+      return backLay;
+    };
+    for (const bet of filteredBets) {
+      let backWins = 0;
+      let layLiability = 0;
+      let backLiability = 0;
+      let layWins = 0;
+      if (
+        bet.bet_profit.back_matched &&
+        bet.bet_profit.back_matched['matched']
+      ) {
+        try {
+          const backObj = updateProfit(bet.bet_profit.back_matched, 'back');
+          const layObj = updateProfit(bet.bet_profit.exchange_matched, 'lay');
+          const backLay: {
+            [key: string]: { [key: number]: number };
+          } = { lay: layObj['lay'], back: backObj['back'] };
+          Object.entries(backLay['back']).map((x) => {
+            backWins += (+x[0] - 1) * x[1];
+            backLiability += x[1];
+          });
+          Object.entries(backLay['lay']).map((x) => {
+            layWins += +x[1] * (1 - bet.bet_odds.commission);
+            layLiability += (+x[0] - 1) * x[1];
+          });
+          bet.bet_profit.back_win_profit = backWins - layLiability;
+          bet.bet_profit.lay_win_profit = layWins - backLiability;
+        } catch (err) {
+          console.log('err', bet.bet_profit, err);
+        }
+      }
+    }
     const totalProfit = filteredBets
       .reduce(
         (sum, current) =>
@@ -40,7 +81,6 @@ function StatTable({
         0,
       )
       .toFixed(2);
-
     const totalLiability = filteredBets
       .reduce(
         (sum, curr: BData) =>
