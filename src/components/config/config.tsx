@@ -33,12 +33,13 @@ export function Config() {
       }
       const modifiedCount =
         await window.electron.ipcRenderer.updateItem(updateObj);
+
       setStatus(`Modified ${modifiedCount} documents.`);
+      console.log(query, update, status);
     } catch (error) {
       setStatus(`Error: ${error.message}`);
     }
   };
-  console.log(query, update, status);
   useEffect(() => {
     const handleConfigFetched = (fetchedData: any) => {
       setConfig(fetchedData[0]);
@@ -47,7 +48,7 @@ export function Config() {
       const last_active =
         new Date().getTime() / 1000 - fetchedData[0].last_active < 15;
       setRunning(last_active);
-      console.log(fetchedData[0].last_active,last_active);
+      console.log(fetchedData[0].last_active, last_active);
     };
     window.electron.ipcRenderer.onConfigFetched(handleConfigFetched);
     window.electron.ipcRenderer.onHeartbeatFetched(handleHeartbeat);
@@ -61,11 +62,10 @@ export function Config() {
     <>
       {config && (
         <Box
-          width={'30%'}
-          padding={1}
-          border={'solid 1px black'}
-          borderRadius={'3px'}
-          bgcolor={'grey'}
+          padding={2}
+          //   border={'solid 1px black'}
+          //   borderRadius={'3px'}
+          bgcolor={'inherit'}
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <NumberInput
@@ -84,22 +84,34 @@ export function Config() {
               setUpdate={setUpdate}
             />
           </div>
-          <Button variant="contained">
+          {/* <Button
+            variant="contained"
+            style={{ marginRight: '10px', marginBottom: '10px' }}
+          >
             {!config.USE_MONEY ? 'Use Cash' : "Don't use Cash"}
-          </Button>
-          <Button
-            onClick={() => handleUpdate('updateRunningState')}
-            variant="contained"
-            color={!running ? 'success' : 'error'}
-          >
-            {running ? 'Stop' : 'Start'}
-          </Button>
-          <Button
-            onClick={() => handleUpdate('updateConfig')}
-            variant="contained"
-          >
-            Update Config
-          </Button>
+          </Button> */}
+          {/* <br></br> */}
+          <div style={{ display: 'flex' }}>
+            <Button
+              onClick={() => handleUpdate('updateConfig')}
+              variant="contained"
+              style={{
+                marginRight: '10px',
+                marginBottom: '10px',
+                textWrap: 'nowrap',
+              }}
+            >
+              Update Config
+            </Button>
+            <Button
+              onClick={() => handleUpdate('updateRunningState')}
+              variant="contained"
+              style={{ marginRight: '10px', marginBottom: '10px' }}
+              color={!running ? 'success' : 'error'}
+            >
+              {running ? 'Stop' : 'Start'}
+            </Button>
+          </div>
         </Box>
       )}
     </>
@@ -132,6 +144,8 @@ function NumberInput({
       style={{
         display: 'flex',
         position: 'relative',
+        marginLeft: '10px',
+        // fontSize: '20px',
       }}
     >
       <span className="config-currency-sign">£</span>
@@ -143,6 +157,7 @@ function NumberInput({
         onChange={handleChange}
         min="1"
         max="1000"
+        style={{ fontSize: '20px', padding: '5px' }}
         step={5}
       ></input>
       <label>
