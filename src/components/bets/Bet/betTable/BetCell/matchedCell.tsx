@@ -56,10 +56,10 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
       layWins += +x[1] * (1 - data.bet_odds.commission);
       layLiability += (+x[0] - 1) * x[1];
     });
+
     setBackWinProfit(backWins - layLiability);
     setLayWinProfit(layWins - backLiability);
   }, [backLay]);
-
   return (
     <>
       <BetTableCell>
@@ -123,15 +123,11 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
           ? Object.values(backLay['back']).map((x, i) => {
               return (
                 <Typography
-                  color={
-                    data.bet_profit.back_win_profit >= 0
-                      ? green['400']
-                      : red['400']
-                  }
+                  color={backWinProfit >= 0 ? green['400'] : red['400']}
                   key={i}
                 >
-                  {/* £{backWinProfit.toFixed(2)} £ */}
-                  {data.bet_profit.back_win_profit.toFixed(2)}
+                  £{backWinProfit.toFixed(2)}
+                  {/* {backWinProfit.toFixed(2)} */}
                 </Typography>
               );
             })
@@ -141,8 +137,7 @@ function MatchedCell({ data, lay }: MatchedCellProps) {
                   color={layWinProfit >= 0 ? green['400'] : red['400']}
                   key={i}
                 >
-                  {/* £{layWinProfit.toFixed(2)} */}
-                  £{data.bet_profit.lay_win_profit.toFixed(2)}
+                  £{layWinProfit.toFixed(2)}
                 </Typography>
               );
             })}
