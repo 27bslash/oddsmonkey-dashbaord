@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -57,9 +58,26 @@ function Bet({ bet, updateSort }: { bet: BData; updateSort: any }) {
   return (
     <Box>
       <Box>
-        <Typography variant="h6" color="white">
-          {bet.bet_info['event_name']}
-        </Typography>
+        <div className="flex" style={{ alignItems: 'center' }}>
+          <Typography variant="h6" color="white">
+            {bet.bet_info['event_name']}
+          </Typography>
+          {Date.now() / 1000 - bet.bet_info.bet_unix_time < 300 && (
+            <Button
+              disabled
+              variant="contained"
+              sx={{
+                background:
+                  'linear-gradient(200.96deg,#fedc2a -29.09%,#dd5789 51.77%,#7a2c9e 129.35% )',
+                color: 'white !important',
+                border: 'solid 1px black',
+                marginLeft: '10px',
+              }}
+            >
+              new bet
+            </Button>
+          )}
+        </div>
         <Typography color={grey['400']} variant="caption">
           {bet.bet_info['market_type']}
         </Typography>
@@ -69,7 +87,7 @@ function Bet({ bet, updateSort }: { bet: BData; updateSort: any }) {
         <BetTableHead updateSort={updateSort} />
         <TableBody>
           <BetTableRow data={bet} lay={false}></BetTableRow>
-          <BetTableRow data={bet} lay={true}></BetTableRow> 
+          <BetTableRow data={bet} lay={true}></BetTableRow>
         </TableBody>
       </Table>
     </Box>
