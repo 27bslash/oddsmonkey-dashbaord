@@ -5,9 +5,10 @@ import StatTableBody from './balanceTable/balanceTable';
 import TableHeader from './balanceTable/BalanceTableHeader';
 import FilterButtons from './FilterButtons';
 import { useAppContext } from '../../renderer/useAppContext';
+import { Config } from '../config/config';
 
 type StatTableProps = {
-  filter: string;
+  filter: 'active' | 'day' | 'week' | 'all time';
   setFilter: React.SetStateAction<any>;
   filteredBets: BData[];
   totalBets: BData[];
@@ -115,22 +116,21 @@ function StatTable({
     });
   }, [allBets, filteredBets]);
   return (
-    <Box display={'flex'}>
-      <>
-        <FilterButtons filter={filter} setFilter={setFilter} />
-        <Box
-          sx={{
-            marginLeft: 'auto',
-          }}
-        >
-          {totals && (
-            <Table>
-              <TableHeader filter={filter} />
-              <StatTableBody totals={totals} balance={balance} />
-            </Table>
-          )}
-        </Box>
-      </>
+    <Box
+      display={'flex'}
+      justifyContent={'space-between'}
+      width={'100%'}
+      height={'150px'}
+      marginBottom={'50px'}
+    >
+      <FilterButtons filter={filter} setFilter={setFilter} />
+      {totals && (
+        <Table style={{ width: '600px' }}>
+          <TableHeader filter={filter} />
+          <StatTableBody totals={totals} balance={balance} />
+        </Table>
+      )}
+      <Config></Config>
     </Box>
   );
 }
