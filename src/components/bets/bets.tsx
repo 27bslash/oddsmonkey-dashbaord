@@ -5,6 +5,7 @@ import { useAppContext } from '../../renderer/useAppContext';
 import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
 import StatTable from '../StatTable/statTable';
 import Bet from './Bet/betTable/betTable';
+import { Config } from './../config/config';
 
 type SortKeys = keyof BetInfo | keyof BetOdds | keyof BetProfit;
 
@@ -109,15 +110,16 @@ function Bets() {
   };
   return (
     <Box
-      padding={5}
-      sx={{ backgroundColor: '#212121', overflowY: 'scroll', height: '400px' }}
+        // padding={5}
+      sx={{ backgroundColor: '#212121',  height: 'fit-content',width: '93vw' }}
     >
       {filteredBets && (
         <>
           <Box
             sx={{
               position: 'sticky',
-              top: '-40px',
+              display:'flex',
+              top: '0px',
               zIndex: 99,
               background: '#212121',
             }}
