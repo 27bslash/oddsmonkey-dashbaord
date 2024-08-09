@@ -6,17 +6,18 @@ body {
   position: relative;
   color: white;
   height: 100vh;
-  background: linear-gradient(
+  /* background: linear-gradient(
     200.96deg,
     #fedc2a -29.09%,
     #dd5789 51.77%,
     #7a2c9e 129.35%
-  );
+  ); */
+  background: #212121;
   font-family: sans-serif;
-  overflow-y: hidden;
+  overflow-y: scroll;
   display: flex;
   justify-content: center;
-  align-items: center;
+  /* align-items: center; */
 }
 
 button {
@@ -54,7 +55,9 @@ a:hover {
   opacity: 1;
   text-decoration: none;
 }
-
+.flex {
+  display: flex;
+}
 .Hello {
   display: flex;
   justify-content: center;
@@ -62,23 +65,24 @@ a:hover {
   margin: 20px 0;
 }
 .config-number-input {
-  background-color: rgb(137, 130, 130);
+  background-color: inherit;
+  width: 80px;
   outline: none;
   border: none;
-  width: 50px;
   cursor: pointer;
+  color: white;
 }
 .config-number-input::placeholder {
   color: black;
 }
 .config-currency-sign {
   position: absolute;
-  left: -5px;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  font-size: 0.8em;
-  color: black;
+  font-size: 1.2em;
+  color: white;
 }
 .editable-text-input {
   border: none;

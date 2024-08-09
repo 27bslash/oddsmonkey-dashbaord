@@ -61,7 +61,7 @@ function Hello() {
     <AppContextProvider value={value}>
       {allBets && (
         <>
-          <Config />
+          {/* <Config /> */}
           <Bets />
         </>
       )}
