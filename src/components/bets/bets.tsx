@@ -4,10 +4,10 @@ import { BData, BetInfo, BetOdds, BetProfit } from '../../../types';
 import { useAppContext } from '../../renderer/useAppContext';
 import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
 import StatTable from '../StatTable/statTable';
-import Bet from './Bet/betTable/betTable';
 import { Config } from './../config/config';
+import Bet from './Bet/betTable/betTable';
 
-type SortKeys = keyof BetInfo | keyof BetOdds | keyof BetProfit;
+export type SortKeys = keyof BetInfo | keyof BetOdds | keyof BetProfit;
 
 function Bets() {
   const [filteredBets, setFilteredBets] = useState<BData[]>();
@@ -56,15 +56,10 @@ function Bets() {
     }
 
     // if (allBets[0].bet_info.event_name !== sorted[0].bet_info.event_name) {
-    console.log(
-      'updating bets',
-      allBets[0].bet_info.event_name,
-      sorted[0].bet_info.event_name,
-    );
     setSortedData([...sorted]);
 
     setLoading(false); // Stop loading after sorting and any updates
-  }, [orderBy, sortDirection, allBets]);
+  }, [orderBy, sortDirection, allBets, page]);
 
   const sortBets = (arr: BData[], key?: keyof BData) => {
     if (!key) key = k;
@@ -110,15 +105,15 @@ function Bets() {
   };
   return (
     <Box
-        // padding={5}
-      sx={{ backgroundColor: '#212121',  height: 'fit-content',width: '93vw' }}
+      // padding={5}
+      sx={{ backgroundColor: '#212121', height: 'fit-content', width: '93vw' }}
     >
       {filteredBets && (
         <>
           <Box
             sx={{
               position: 'sticky',
-              display:'flex',
+              display: 'flex',
               top: '0px',
               zIndex: 99,
               background: '#212121',
@@ -131,8 +126,8 @@ function Bets() {
               totalBets={allBets!}
             />
           </Box>
-          {filteredBets.slice(page * 10, page * 10 + 10).map((x, i) => {
-            return <Bet key={i} updateSort={handleRequestSort} bet={x}></Bet>;
+          {filteredBets.slice(page * 10, page * 10 + 10).map((bet, i) => {
+            return <Bet key={i} updateSort={handleRequestSort} bet={bet}></Bet>;
           })}
           <TableFooter>
             <TableRow>

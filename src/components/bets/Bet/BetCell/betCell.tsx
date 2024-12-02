@@ -10,7 +10,9 @@ function BetTableCell({ color, children }: BetTableCellProps) {
   if (!color) color = 'white';
   return (
     <TableCell>
-      <Typography color={color}>{children}</Typography>
+      <Typography width={'120px'} color={color}>
+        {children}
+      </Typography>
     </TableCell>
   );
 }

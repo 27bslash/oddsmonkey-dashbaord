@@ -1,6 +1,8 @@
 import {
+  bottomNavigationActionClasses,
   Box,
   Button,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -10,17 +12,32 @@ import {
   Typography,
 } from '@mui/material';
 import { blue, green, grey, red } from '@mui/material/colors';
-import { Link } from 'react-router-dom';
-import { BData, BProfit } from '../../../../../types';
 import TimeAgo from 'javascript-time-ago';
-import en from 'javascript-time-ago/locale/en';
-
+import en from 'javascript-time-ago/locale/en.json';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { BData } from '../../../../../types';
+import BetProvider from '../../betContext';
 import BetTableHead from './BetHeader/betTableHead';
 import BetTableRow from './betRow';
-
+import DebugImages from '../BetCell/betImages/debugImages';
+import BetCalculator from '../BetCell/missingBetCalculator/betCalculator';
+import Delete from '../BetCell/delete/delete';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined';
 TimeAgo.addDefaultLocale(en);
 
 function Bet({ bet, updateSort }: { bet: BData; updateSort: any }) {
+  const [showBetCalc, setShowBetCalc] = useState(false);
+  const [show, setShow] = useState(false);
+  const [deleteOverlay, setDeleteOverlay] = useState(false);
+
+  const [betData, setBetData] = useState<BData>(bet);
+  useEffect(() => {
+    if (betData !== bet) {
+      setBetData(bet);
+    }
+  }, [bet]);
   //   const test_data: TestData = {
   //     bet_info: {
   //       bet: 'Brondby',
@@ -55,42 +72,156 @@ function Bet({ bet, updateSort }: { bet: BData; updateSort: any }) {
   //       back_win_profit: 0.01,
   //     },
   //   };
+  //   if (bet._id !== betData._id) {
+  //     return (
+  //       <Box sx={{ display: 'flex' }}>
+  //         <CircularProgress />
+  //       </Box>
+  //     );
+  //   }
+
+  let value;
+  if (betData) value = { betData, updateSort, setBetData };
   return (
-    <Box>
-      <Box>
-        <div className="flex" style={{ alignItems: 'center' }}>
-          <Typography variant="h6" color="white">
-            {bet.bet_info['event_name']}
-          </Typography>
-          {Date.now() / 1000 - bet.bet_info.bet_unix_time < 300 && (
-            <Button
-              disabled
-              variant="contained"
-              sx={{
-                background:
-                  'linear-gradient(200.96deg,#fedc2a -29.09%,#dd5789 51.77%,#7a2c9e 129.35% )',
-                color: 'white !important',
-                border: 'solid 1px black',
-                marginLeft: '10px',
-              }}
-            >
-              new bet
-            </Button>
-          )}
-        </div>
-        <Typography color={grey['400']} variant="caption">
-          {bet.bet_info['market_type']}
-        </Typography>
-      </Box>
-      <Typography>{bet.bet_info['bet']}</Typography>
-      <Table>
-        <BetTableHead updateSort={updateSort} />
-        <TableBody>
-          <BetTableRow data={bet} lay={false}></BetTableRow>
-          <BetTableRow data={bet} lay={true}></BetTableRow>
-        </TableBody>
-      </Table>
-    </Box>
+    value && (
+      <BetProvider value={value}>
+        <Box>
+          <Box>
+            <div className="flex" style={{ alignItems: 'center' }}>
+              <Typography variant="h6" color="white">
+                {betData.bet_info['event_name']}
+              </Typography>
+              {Date.now() / 1000 - bet.bet_info.bet_unix_time < 300 && (
+                <Button
+                  disabled
+                  variant="contained"
+                  sx={{
+                    background:
+                      'linear-gradient(200.96deg,#fedc2a -29.09%,#dd5789 51.77%,#7a2c9e 129.35% )',
+                    color: 'white !important',
+                    border: 'solid 1px black',
+                    marginLeft: '10px',
+                  }}
+                >
+                  new bet
+                </Button>
+              )}
+              <CalculateOutlinedIcon
+                className="icon"
+                sx={{ padding: '5px' }}
+                onClick={() => setShowBetCalc((prev) => !prev)}
+                color="success"
+              />
+
+              {showBetCalc && (
+                <div
+                  className="wrapper"
+                  onMouseDown={(e) => {
+                    if (e.target === e.currentTarget) {
+                      return setShowBetCalc(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    console.log(e.key);
+                    if (e.key === 'Escape') return setShowBetCalc(false);
+                  }}
+                >
+                  <BetCalculator
+                    setShowBetCalc={setShowBetCalc}
+                    data={bet}
+                  ></BetCalculator>
+                </div>
+              )}
+              <DeleteIcon
+                className="icon"
+                sx={{ padding: '5px' }}
+                onClick={() => setDeleteOverlay((prev) => !prev)}
+                color="error"
+              />
+
+              {deleteOverlay && (
+                <div
+                  className="wrapper"
+                  onMouseDown={(e) => {
+                    if (e.target === e.currentTarget) {
+                      return setDeleteOverlay(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    console.log(e.key);
+                    if (e.key === 'Escape') return setDeleteOverlay(false);
+                  }}
+                >
+                  <Delete
+                    data={bet}
+                    setDeleteOverlay={setDeleteOverlay}
+                  ></Delete>
+                </div>
+              )}
+              <DebugImages data={bet}></DebugImages>
+            </div>
+            <Typography color={grey['400']} variant="caption">
+              {bet.bet_info['market_type']}
+            </Typography>
+          </Box>
+
+          <Typography>{bet.bet_info['bet']}</Typography>
+          <Table sx={{ position: 'relative' }}>
+            <BetTableHead updateSort={updateSort} />
+            <TableBody>
+              {bet.bet_profit['back_matched'].map((x, i) => {
+                // console.log(i, x);
+                if (i === 0 || show) {
+                  return (
+                    <>
+                      <BetTableRow
+                        data={bet}
+                        index={i}
+                        lay={false}
+                        show={show}
+                      />
+                      <BetTableRow
+                        data={bet}
+                        index={i}
+                        lay={true}
+                        show={show}
+                      />
+                    </>
+                  );
+                }
+              })}
+              {/* {bet.bet_profit['exchange_matched'].map((x, i) => {
+            if (i === 0 || show) {
+              return (
+                <>
+                </>
+              );
+            }
+          })} */}
+            </TableBody>
+            {bet.bet_profit['back_matched'].length > 1 && (
+              <Button
+                variant="contained"
+                disableElevation
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  zIndex: 9,
+                  right: '0',
+                  opacity: '1',
+                  backgroundColor: '#212121',
+                }}
+                onClick={() => setShow((prev) => !prev)}
+              >
+                <Typography>
+                  {bet.bet_profit['back_matched'].length - 1} V
+                </Typography>
+              </Button>
+            )}
+          </Table>
+        </Box>
+      </BetProvider>
+    )
   );
 }
 
