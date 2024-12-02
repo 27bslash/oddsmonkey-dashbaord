@@ -18,13 +18,13 @@ function StatTableBody({ totals, balance }: StatTableBodyProps) {
       <TableRow>
         <TableCell>
           <Typography color={'gold'} style={{ display: 'grid' }}>
-            £{(balance.smarkets + totals.smarketsLoss).toFixed(2)}
+            £{balance.smarkets.toFixed(2)}
             <span style={{ color: red['600'] }}>-£{totals.smarketsLoss}</span>
           </Typography>
         </TableCell>
         <TableCell>
           <Typography color={'gold'} style={{ display: 'grid' }}>
-            £{(balance.betfair + totals.betfairLoss).toFixed(2)}
+            £{balance.betfair}
             <span style={{ color: red['600'] }}>-£{totals.betfairLoss}</span>
           </Typography>
         </TableCell>

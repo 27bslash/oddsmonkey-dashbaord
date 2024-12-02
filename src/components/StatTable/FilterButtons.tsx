@@ -13,13 +13,12 @@ function FilterButtons({ filter, setFilter }: FilterButtonProps) {
         flexDirection: 'column',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        marginBottom: '20px',
       }}
     >
       <Typography
         variant="h5"
         textTransform={'capitalize'}
-        marginBottom={'30px'}
+        marginBottom={'60px'}
       >
         filter by Bet Time
       </Typography>
@@ -29,7 +28,6 @@ function FilterButtons({ filter, setFilter }: FilterButtonProps) {
         sx={{
           height: '45px',
           textWrap: 'nowrap',
-          marginTop: '10px',
         }}
       >
         <FilterButton currentFilter={filter} setFilter={setFilter}>
