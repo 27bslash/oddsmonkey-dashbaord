@@ -21,6 +21,9 @@ const electronHandler = {
     once(channel: Channels, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
+    flashIcon: (eventId: string) => ipcRenderer.invoke('flash-icon', eventId),
+    resetIconEvent: (eventId: string) =>
+      ipcRenderer.invoke('reset-icon-event', eventId),
     fetchItems: (collection_name: string) =>
       ipcRenderer.invoke('fetch-items', collection_name),
     addItem: (item: any, collection_name: string) =>

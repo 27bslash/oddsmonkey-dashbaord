@@ -13,7 +13,7 @@ export function Config() {
   const [query, setQuery] = useState({});
   const [update, setUpdate] = useState({});
   const [status, setStatus] = useState('');
-
+  const [flashed, setFlashed] = useState(false);
   const handleUpdate = async (
     updateType: 'updateRunningState' | 'updateConfig',
   ) => {
@@ -46,9 +46,16 @@ export function Config() {
     };
     const handleHeartbeat = (fetchedData: any) => {
       const last_active =
-        new Date().getTime() / 1000 - fetchedData[0].last_active < 15;
+        new Date().getTime() / 1000 - fetchedData[0].last_active < 30;
+      if (running !== last_active) {
+        window.electron.ipcRenderer.resetIconEvent('app-down');
+      }
       setRunning(last_active);
-      console.log(fetchedData[0].last_active, last_active);
+      if (!last_active && !flashed) {
+        console.log('running', last_active, flashed);
+        window.electron.ipcRenderer.flashIcon('app-down');
+        setFlashed(true);
+      } 
     };
     window.electron.ipcRenderer.onConfigFetched(handleConfigFetched);
     window.electron.ipcRenderer.onHeartbeatFetched(handleHeartbeat);

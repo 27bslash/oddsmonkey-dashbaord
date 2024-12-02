@@ -19,6 +19,7 @@ import { MongoClient } from 'mongodb';
 const uri =
   'mongodb+srv://admin:RmQPhObcTdZeLYUX@pro-item-tracker.ifybd.mongodb.net';
 const client = new MongoClient(uri);
+const eventStatus = new Map<string, boolean>();
 
 class AppUpdater {
   constructor() {
@@ -124,6 +125,17 @@ const createWindow = async () => {
 
   ipcMain.handle('add-item', async (event, item, collection_name: string) => {
     return await addItem(item, collection_name);
+  });
+  ipcMain.handle('flash-icon', (event, eventId: string) => {
+    if (!eventStatus.get(eventId)) {
+      console.log(eventId);
+      // If event is not yet acknowledged
+      mainWindow!.flashFrame(true); // Flash the taskbar icon
+      eventStatus.set(eventId, true); // Mark event as acknowledged
+    }
+  });
+  ipcMain.handle('reset-icon-event', (event, eventId: string) => {
+    eventStatus.set(eventId, false); // Reset event status
   });
   ipcMain.handle(
     'update-document',
