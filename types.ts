@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 interface ElectronHandler {
   ipcRenderer: {
     sendMessage(channel: string, ...args: unknown[]): void;
@@ -21,8 +23,8 @@ export interface bInfo {
   unix_time: number;
   market_type: string;
   rating: string;
-  bookmaker: string;
-  exchange: string;
+  bookmaker: 'smarkets' | 'betfair' | 'betconnect';
+  exchange: 'smarkets' | 'betfair' | 'betconnect';
   bookie_link: string;
   exchange_link: string;
 }
@@ -51,19 +53,17 @@ export interface BProfit {
   back_win: number;
   back_liability: number;
   back_win_profit: number;
-  back_matched: {
-    matched: number[];
-    odds: number[];
-    staked: number[];
-  };
-  exchange_matched: {
-    odds: number[];
-    staked: number[];
-    matched: number[];
-  };
+  back_matched: Matched[];
+  exchange_matched: Matched[];
 }
-
+export interface Matched {
+  odds: number[];
+  staked: number[];
+  bet_matched_time?: number;
+  matched: number[];
+}
 export interface BData {
+  _id: ObjectId;
   bet_info: bInfo;
   bet_odds: BOdds;
   bet_profit: BProfit;
