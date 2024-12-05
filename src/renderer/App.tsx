@@ -1,23 +1,18 @@
 import './App.css';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import Bets from '../../../../python/oddsmonkey-d/src/components/bets/bets';
 import { useEffect, useState } from 'react';
-import { BData, BetType } from '../../../../python/oddsmonkey-d/types';
 import AppContextProvider from './useAppContext';
-import { Config } from '../../../../python/oddsmonkey-d/src/components/config/config';
+import Logs from '../components/logs_reader/logs';
+import { BData, BetType } from '../../types';
+import Bets from '../components/bets/bets';
+import TableSearch from '../components/search/tableSearch';
 
-function shuffleArray(array: any[]) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-  }
-  return array;
-}
 type Balance = {
   smarkets: number;
   betfair: number;
 };
-function Hello() {
+
+export default function App() {
   const [allBets, setAllBets] = useState<BData[]>();
   const [k, setK] = useState<keyof BData>('bet_info');
   const [orderBy, setOrderBy] = useState<keyof BetType>('bet_unix_time');
@@ -26,7 +21,24 @@ function Hello() {
 
   useEffect(() => {
     const handleDataFetched = (fetchedData: BData[]) => {
-      if (JSON.stringify(fetchedData) === JSON.stringify(allBets)) return;
+      if (allBets) {
+        // console.log(fetchedData, allBets);
+        const fetchSrt = fetchedData.sort(
+          (a, b) =>
+            b['bet_info']['bet_unix_time'] - a['bet_info']['bet_unix_time'],
+        );
+        const allbetsSrt = allBets.sort(
+          (a, b) =>
+            b['bet_info']['bet_unix_time'] - a['bet_info']['bet_unix_time'],
+        );
+        if (
+          allbetsSrt[0]['bet_info']['bet_unix_time'] ===
+          fetchSrt[0]['bet_info']['bet_unix_time']
+        ) {
+          console.log('same data');
+          return;
+        }
+      }
 
       setAllBets(fetchedData);
 
@@ -36,6 +48,8 @@ function Hello() {
       //   setFilteredBets(filteredData);
     };
     window.electron.ipcRenderer.onDataFetched(handleDataFetched);
+    const data = window.electron.ipcRenderer.readLog();
+    console.log(data);
     const handleBalance = (d: Balance[]) => {
       setBalance({ smarkets: d[0].smarkets, betfair: d[0].betfair });
     };
@@ -56,24 +70,23 @@ function Hello() {
     setSortDirection,
     setAllBets,
   };
-
-  return (
-    <AppContextProvider value={value}>
-      {allBets && (
-        <>
-          {/* <Config /> */}
-          <Bets />
-        </>
-      )}
-    </AppContextProvider>
-  );
-}
-
-export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Hello />} />
+        <Route
+          path="/"
+          element={
+            <AppContextProvider value={value}>
+              {allBets && (
+                <>
+                  {/* <Config /> */}
+                  <Bets></Bets>
+                  {/* <Logs></Logs> */}
+                </>
+              )}
+            </AppContextProvider>
+          }
+        />
       </Routes>
     </Router>
   );
