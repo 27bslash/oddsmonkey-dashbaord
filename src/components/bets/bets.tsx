@@ -5,16 +5,48 @@ import { useAppContext } from '../../renderer/useAppContext';
 import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
 import StatTable from '../StatTable/statTable';
 import { Config } from './../config/config';
-import Bet from './Bet/betTable/betTable';
+import Bet from './Bet/betTable/Bet';
+import { ObjectId } from 'mongodb';
+import TableSearch from '../search/tableSearch';
+import fuzzysort from 'fuzzysort';
 
 export type SortKeys = keyof BetInfo | keyof BetOdds | keyof BetProfit;
 
+export function filterTimestampsByWeek() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayOfWeek = today.getDay();
+  const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+  const startOfWeek = new Date(today);
+
+  startOfWeek.setDate(today.getDate() + diffToMonday);
+  const startOfWeekUnix = startOfWeek.getTime() / 1000;
+  return startOfWeekUnix;
+}
+export function filterTimestampsByDay() {
+  const now = new Date();
+
+  const startHour = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getHours() > 3 ? now.getDate() : now.getDate() - 1,
+    9,
+  ).getTime();
+  const endHour = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getHours() > 3 ? now.getDate() + 1 : now.getDate(),
+    3,
+  ).getTime();
+  return { startHour, endHour };
+}
 function Bets() {
   const [filteredBets, setFilteredBets] = useState<BData[]>();
   const [sortedData, setSortedData] = useState<BData[]>();
-  const [filter, setFilter] = useState<'active' | 'day' | 'week' | 'all time'>(
-    'active',
-  );
+  const [timeFilter, setTimeFilter] = useState<
+    'active' | 'day' | 'week' | 'all time'
+  >('active');
+  const [searchFilter, setSearchFilter] = useState<string>();
   const [page, setPage] = useState(0);
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -86,22 +118,49 @@ function Bets() {
 
   useEffect(() => {
     if (!sortedData) return;
-    filterBets();
-  }, [filter, sortedData]);
-  const filterBets = () => {
+    filterBetsByTime();
+    if (searchFilter) {
+      setTimeFilter('all time');
+      const sorted = fuzzysort
+        .go(searchFilter, sortedData, {
+          key: 'bet_info.event_name',
+        })
+        .filter((result) => result.score >= 0.6);
+      const newBets = sorted.map((result) => result.obj);
+      const sortedBets = sortBets(newBets, 'bet_info');
+      setFilteredBets(sortedBets);
+      setCount(sorted.length);
+    }
+  }, [timeFilter, sortedData, searchFilter]);
+
+  const filterBetsByTime = () => {
     // console.log('filter bets', showAll, allBets);
+    const now = new Date();
+
+    const { startHour, endHour } = filterTimestampsByDay();
+    // console.log('day', currentTime, targetDay);
+    const startOfWeekUnix = filterTimestampsByWeek();
     const f = sortedData!.filter((x) => {
-      if (filter === 'active') {
+      const betDate = new Date(x.bet_info.bet_unix_time);
+      if (timeFilter === 'active') {
         return x.bet_info.unix_time > new Date().getTime() / 1000 - 5400;
-      } else if (filter === 'day') {
-        return x.bet_info.bet_unix_time > new Date().getTime() / 1000 - 86400;
-      } else if (filter === 'week') {
-        return x.bet_info.bet_unix_time > new Date().getTime() / 1000 - 604800;
+      } else if (timeFilter === 'day') {
+        return (
+          x.bet_info.bet_unix_time >= startHour &&
+          x.bet_info.bet_unix_time <= endHour
+        );
+        // return x.bet_info.bet_unix_time > new Date().getTime() / 1000 - 86400;
+      } else if (timeFilter === 'week') {
+        return x.bet_info.bet_unix_time >= startOfWeekUnix;
       }
       return x;
     });
     setFilteredBets(f);
     setCount(f.length);
+  };
+
+  const deleteBet = (_id: ObjectId) => {
+    setAllBets(allBets!.filter((x) => x._id !== _id));
   };
   return (
     <Box
@@ -120,14 +179,23 @@ function Bets() {
             }}
           >
             <StatTable
-              filter={filter}
-              setFilter={setFilter}
+              filter={timeFilter}
+              setFilter={setTimeFilter}
+
               filteredBets={filteredBets}
               totalBets={allBets!}
             />
           </Box>
+          <TableSearch setSearchFilter={setSearchFilter}></TableSearch>
           {filteredBets.slice(page * 10, page * 10 + 10).map((bet, i) => {
-            return <Bet key={i} updateSort={handleRequestSort} bet={bet}></Bet>;
+            return (
+              <Bet
+                key={i}
+                updateSort={handleRequestSort}
+                bet={bet}
+                deleteBet={deleteBet}
+              ></Bet>
+            );
           })}
           <TableFooter>
             <TableRow>
