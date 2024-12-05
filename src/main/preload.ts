@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
@@ -24,19 +25,21 @@ const electronHandler = {
     flashIcon: (eventId: string) => ipcRenderer.invoke('flash-icon', eventId),
     resetIconEvent: (eventId: string) =>
       ipcRenderer.invoke('reset-icon-event', eventId),
+    readLog: () => ipcRenderer.invoke('read-file'),
     fetchItems: (collection_name: string) =>
       ipcRenderer.invoke('fetch-items', collection_name),
     addItem: (item: any, collection_name: string) =>
       ipcRenderer.invoke('add-item', item, collection_name),
     updateItem: ({
       collectionName,
-      query, 
+      query,
       update,
     }: {
       collectionName: string;
       query: { [key: string]: any };
       update: { [key: string]: any };
-    }) => ipcRenderer.invoke('update-document',{ collectionName, query, update}),
+    }) =>
+      ipcRenderer.invoke('update-document', { collectionName, query, update }),
     onDataFetched: (callback: (data: any) => void) =>
       ipcRenderer.on('pending_bets-fetched', (_event, data) => {
         return callback(data);
@@ -53,6 +56,10 @@ const electronHandler = {
       ipcRenderer.on('heartbeat-fetched', (_event, data) => {
         return callback(data);
       }),
+    getAllImages: async (directoryPath: string) =>
+      await ipcRenderer.invoke('get-images', directoryPath),
+    deleteEntry: (_id: ObjectId, replaceAmount: { [key: string]: number }) =>
+      ipcRenderer.invoke('delete', _id, replaceAmount),
   },
 };
 contextBridge.exposeInMainWorld('electron', electronHandler);

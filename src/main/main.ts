@@ -9,16 +9,20 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import fs from 'fs';
+import { app, BrowserWindow, shell, ipcMain, net } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
+import { protocol, session } from 'electron';
+import { BetInfo } from './../../types';
 
-const uri =
-  'mongodb+srv://admin:RmQPhObcTdZeLYUX@pro-item-tracker.ifybd.mongodb.net';
-const client = new MongoClient(uri);
+
+
+const botInactiveLastNotification = 0;
+const betPlacedLastNotification = 0;
 const eventStatus = new Map<string, boolean>();
 
 class AppUpdater {
@@ -28,7 +32,16 @@ class AppUpdater {
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
-
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'media',
+    privileges: {
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+    },
+  },
+]);
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('ipc-example', async (event, arg) => {
@@ -104,13 +117,39 @@ const createWindow = async () => {
       mainWindow.minimize();
     } else {
       mainWindow.show();
-    } 
+    }
   });
+  function getImagesFromDirectoryRecursive(directoryPath: string): string[] {
+    let results: string[] = [];
+    // console.log(directoryPath);
+    try {
+      const items = fs.readdirSync(directoryPath, { withFileTypes: true });
+
+      for (const item of items) {
+        const fullPath = path.join(directoryPath, item.name);
+
+        if (item.isDirectory()) {
+          // If the item is a directory, recurse into it
+          results = results.concat(getImagesFromDirectoryRecursive(fullPath));
+        } else if (
+          item.isFile() &&
+          /\.(png|jpe?g|gif|bmp|webp)$/i.test(item.name)
+        ) {
+          // If the item is an image file, add it to the results
+          results.push(fullPath);
+        }
+      }
+    } catch (error) {
+      console.error('Error reading directory:', error);
+    }
+    // console.log(results);
+    return results;
+  }
 
   async function addItem(item: any, collection_name: string) {
     const collection = client.db('oddsmonkey').collection(collection_name);
     const result = await collection.insertOne(item);
-    return result; 
+    return result;
   }
   async function updateItem({ collectionName, query, update }) {
     console.log(collectionName, query, update);
@@ -122,9 +161,40 @@ const createWindow = async () => {
   ipcMain.handle('fetch-items', async (event, collection_name: string) => {
     return await fetchItems(collection_name);
   });
-
+  ipcMain.handle(
+    'delete',
+    (event, _id: any, replace: { [key: string]: number }) => {
+      const pendingbets = client.db('oddsmonkey').collection('pending_bets');
+      console.log(_id);
+      const manualProfitOverride = client
+        .db('oddsmonkey')
+        .collection('manual_profit_override');
+      const updatedProfit = manualProfitOverride.updateOne(
+        {},
+        { $push: { profit_tracker: replace } },
+        { upsert: true },
+      );
+      //   console.log(updatedProfit);
+      const objectId = new ObjectId(Buffer.from(_id['buffer']));
+      console.log(objectId);
+      const testBet = pendingbets.findOne({ _id: objectId }).then((doc) => {
+        console.log(doc.bet_info.event_name);
+      });
+    },
+  );
   ipcMain.handle('add-item', async (event, item, collection_name: string) => {
     return await addItem(item, collection_name);
+  });
+  ipcMain.handle('read-file', async (event, filePath) => {
+    try {
+      const fpath =
+        'D:\\projects\\python\\odds_monkey_bot\\dist\\logs\\custom_logs.log';
+      const data = fs.readFileSync(fpath, 'utf8');
+      return data; // Send the file content back to the renderer process
+    } catch (err) {
+      console.error('Error reading file:', err);
+      return null;
+    }
   });
   ipcMain.handle('flash-icon', (event, eventId: string) => {
     if (!eventStatus.get(eventId)) {
@@ -143,6 +213,29 @@ const createWindow = async () => {
       return await updateItem({ collectionName, query, update });
     },
   );
+  ipcMain.handle('get-images', (event, directoryPath) => {
+    // console.log('images', directoryPath);
+    const ret = getImagesFromDirectoryRecursive(directoryPath); // Use the recursive function
+    return ret;
+  });
+  ipcMain.handle('get-image', async (event, filePath) => {
+    try {
+      // Check if the file exists
+      if (!fs.existsSync(filePath)) {
+        throw new Error('File does not exist');
+      }
+
+      // Validate it's an image file
+      if (!/\.(png|jpe?g|gif|bmp|webp)$/i.test(path.extname(filePath))) {
+        throw new Error('File is not a valid image');
+      }
+
+      return filePath; // Return the valid image path
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      throw error; // Pass the error to the renderer
+    }
+  });
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -191,9 +284,14 @@ setInterval(() => {
   fetchItems('config');
   fetchItems('heartbeat');
 }, 10000);
+
 app
   .whenReady()
   .then(() => {
+    protocol.handle('media', (req) => {
+      const pathToMedia = new URL(req.url).pathname;
+      return net.fetch(`file://${pathToMedia}`);
+    });
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
