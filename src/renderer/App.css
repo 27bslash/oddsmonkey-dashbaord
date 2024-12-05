@@ -5,7 +5,7 @@
 body {
   position: relative;
   color: white;
-  height: 100vh;
+  height: 100%;
   /* background: linear-gradient(
     200.96deg,
     #fedc2a -29.09%,
@@ -105,4 +105,64 @@ a:hover {
 }
 #total-liability:hover {
   cursor: help;
+}
+.help-hover {
+  cursor: help;
+}
+.wrapper {
+  backdrop-filter: blur(10px);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0%;
+  z-index: 99;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+.bet-calculator {
+  position: sticky;
+  top: 200px;
+  padding: 10px;
+  /* border: solid 1px rgb(80, 74, 74); */
+}
+.calculator-section {
+  border-left: solid 3px black;
+  border-right: solid 3px black;
+  padding: 20px;
+}
+#back-container {
+  border-radius: 20px 20px 0px 0px;
+  border-top: solid 3px black;
+}
+.missing-bet-text {
+  border-left: solid 3px black;
+  border-right: solid 3px black;
+}
+.profit-display {
+  border-radius: 0% 0% 20px 20px;
+  /* background: #3f81bb; */
+  background: #022d6d;
+  border-bottom: solid 3px black;
+  border-left: solid 3px black;
+  border-right: solid 3px black;
+  padding: 15px;
+  font-weight: 400 !important;
+}
+.bet-calculator-profit-table {
+  background-color: rgb(159, 155, 148);
+  border-left: solid black 3px;
+  border-right: solid black 3px;
+}
+.icon {
+  cursor: pointer;
+}
+.icon:hover {
+  opacity: 0.8;
+  scale: 1.1;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  height: 40px;
+  cursor: pointer;
 }
