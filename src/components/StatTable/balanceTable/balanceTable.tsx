@@ -29,7 +29,7 @@ function StatTableBody({ totals, balance }: StatTableBodyProps) {
           </Typography>
         </TableCell>
         <TableCell>
-          <Typography color={green['400']}>£{totals.totalProfit}</Typography>
+          <Typography color={green['400']}>£{totals.totalProfit.toFixed(2)}</Typography>
         </TableCell>
         <TableCell>
           <Tooltip
