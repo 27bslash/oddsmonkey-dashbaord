@@ -22,7 +22,7 @@ const IndividualImage = ({ path }: { path: string }) => {
   const [showImage, setShowImage] = useState(true);
 
   return showImage ? (
-    <Zoom>
+    <Zoom zoomMargin={4}>
       <img
         src={`media:///${path}`}
         width={900}

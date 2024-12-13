@@ -19,12 +19,12 @@ import { MongoClient, ObjectId } from 'mongodb';
 import { protocol, session } from 'electron';
 import { BetInfo } from './../../types';
 
-
+require('dotenv').config();
 
 const botInactiveLastNotification = 0;
 const betPlacedLastNotification = 0;
 const eventStatus = new Map<string, boolean>();
-
+const client = new MongoClient(process.env['DB_CONNECTION']!);
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -119,37 +119,24 @@ const createWindow = async () => {
       mainWindow.show();
     }
   });
-  function getImagesFromDirectoryRecursive(directoryPath: string): string[] {
+  function getImagesFromDirectoryRecursive(
+    directoryPath: string,
+  ): string[] | undefined {
     let results: string[] = [];
-    // console.log(directoryPath);
+    // console.log(directoryPath); 
     try {
-      const items = fs.readdirSync(directoryPath, { withFileTypes: true });
-
-      for (const item of items) {
-        const fullPath = path.join(directoryPath, item.name);
-
-        if (item.isDirectory()) {
-          // If the item is a directory, recurse into it
-          results = results.concat(getImagesFromDirectoryRecursive(fullPath));
-        } else if (
-          item.isFile() &&
-          /\.(png|jpe?g|gif|bmp|webp)$/i.test(item.name)
-        ) {
-          // If the item is an image file, add it to the results
-          results.push(fullPath);
-        }
-      }
+      const items = fs.readdirSync(directoryPath);
+      return items;
     } catch (error) {
       console.error('Error reading directory:', error);
+      return;
     }
-    // console.log(results);
-    return results;
   }
 
   async function addItem(item: any, collection_name: string) {
     const collection = client.db('oddsmonkey').collection(collection_name);
-    const result = await collection.insertOne(item);
-    return result;
+    const result = await collection.insertOne(item); 
+    return result; 
   }
   async function updateItem({ collectionName, query, update }) {
     console.log(collectionName, query, update);

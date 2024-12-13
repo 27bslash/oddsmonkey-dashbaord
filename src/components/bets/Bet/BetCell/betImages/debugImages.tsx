@@ -10,6 +10,7 @@ type DebugImagesProps = {
 };
 const DebugImages = ({ data }: DebugImagesProps) => {
   const [open, setOpen] = useState(false);
+  const [showButton, setShowButton] = useState(false);
   const [dates, setDates] = useState<{ [key: string]: number[] }>({
     back: [],
     lay: [],
@@ -54,7 +55,15 @@ const DebugImages = ({ data }: DebugImagesProps) => {
   //     };
   //     GetBetScreenshots();
   //   };
-
+  useEffect(() => {
+    const getFileNames = async () => {
+      const images = await window.electron.ipcRenderer.getAllImages(
+        'D:\\projects\\python\\odds_monkey_bot\\dist\\logs\\screenshots',
+      );
+      setShowButton(!!images);
+    };
+    getFileNames();
+  }, []);
   useEffect(() => {
     const backDates: number[] = [];
     const layDates: number[] = [];
@@ -75,14 +84,16 @@ const DebugImages = ({ data }: DebugImagesProps) => {
   }, []);
   return (
     <>
-      <Button onClick={() => setOpen((prev) => !prev)} variant="contained">
-        Show Images
-      </Button>
+      {showButton && (
+        <Button onClick={() => setOpen((prev) => !prev)} variant="contained">
+          Show Images
+        </Button>
+      )}
       {open && (
         <>
           {dates.back.map((date, i) => (
             <DebugImage
-              key={`back-${date}-${i}`} // Always add a `key` when mapping over arrays
+              key={`back-${date}-${i}`}
               targetDate={date}
               betName={data.bet_info.bet}
               site={data.bet_info.bookmaker}
@@ -90,7 +101,7 @@ const DebugImages = ({ data }: DebugImagesProps) => {
           ))}
           {dates.lay.map((date, i) => (
             <DebugImage
-              key={`lay-${date}-${i}`} // Unique `key` for each item
+              key={`lay-${date}-${i}`} 
               targetDate={date}
               betName={data.bet_info.bet}
               site={data.bet_info.exchange}
