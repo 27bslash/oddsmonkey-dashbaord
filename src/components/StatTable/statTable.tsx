@@ -34,26 +34,28 @@ function StatTable({
     const data = await window.electron.ipcRenderer.fetchItems(
       'manual_profit_override',
     );
-    if (filter === 'day') {
+    let filtered: { time: number; profit: number }[] =
+      data[0]['profit_tracker'];
+    if (filter === 'active') {
+      filtered = data[0]['profit_tracker'].filter(
+        (x: { [key: string]: number }) =>
+          x.time >= new Date().getTime() / 1000 - 5400,
+      );
+    } else if (filter === 'day') {
       const { startHour, endHour } = filterTimestampsByDay();
-      const filtered = data[0]['profit_tracker']
-        .filter(
-          (x: { [key: string]: number }) =>
-            x.time >= startHour && x.time <= endHour,
-        )
-        .reduce((acc, curr) => acc + curr.profit, 0);
-      console.log(filtered);
+      filtered = data[0]['profit_tracker'].filter(
+        (x: { [key: string]: number }) =>
+          x.time >= startHour && x.time <= endHour,
+      );
     } else if (filter === 'week') {
       const startOfWeek = filterTimestampsByWeek();
-      const filtered = data[0]['profit_tracker']
-        .filter((x: { [key: string]: number }) => x.time >= startOfWeek)
-        .reduce((acc, curr) => acc + curr.profit, 0);
-      console.log(filtered, startOfWeek);
-      setProfitOverride(filtered);
+      filtered = data[0]['profit_tracker'].filter(
+        (x: { [key: string]: number }) => x.time >= startOfWeek,
+      );
     }
-
-    // setProfitOverride(data[0]['profit_tracker']);
-    console.log(data[0]['profit_tracker']);
+    const reduced = filtered.reduce((acc, curr) => acc + curr.profit, 0);
+    console.log(reduced);
+    setProfitOverride(reduced);
   };
   useEffect(() => {
     manualProfitOverride();
@@ -126,10 +128,7 @@ function StatTable({
     //       ? curr.bet_profit.lay_liability
     //       : curr.bet_profit.back_liability;
     //   return sum + loss;
-    if (filter === 'all time') {
-      console.log(totalProfit);
-      console.log(profitOverride);
-    }
+
     totalProfit += profitOverride;
     setTotals({
       totalProfit: totalProfit,
@@ -137,7 +136,7 @@ function StatTable({
       betfairLoss: +betfairLoss.toFixed(2),
       totalLiability: +totalLiability.toFixed(2),
     });
-  }, [allBets, filteredBets]);
+  }, [allBets, filteredBets, profitOverride]);
   return (
     <Box
       display={'flex'}
