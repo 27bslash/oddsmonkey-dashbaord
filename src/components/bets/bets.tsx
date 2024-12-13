@@ -26,18 +26,20 @@ export function filterTimestampsByWeek() {
 export function filterTimestampsByDay() {
   const now = new Date();
 
-  const startHour = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getHours() > 3 ? now.getDate() : now.getDate() - 1,
-    9,
-  ).getTime();
-  const endHour = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getHours() > 3 ? now.getDate() + 1 : now.getDate(),
-    3,
-  ).getTime();
+  const startHour =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getHours() > 3 ? now.getDate() : now.getDate() - 1,
+      9,
+    ).getTime() / 1000;
+  const endHour =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getHours() > 3 ? now.getDate() + 1 : now.getDate(),
+      3,
+    ).getTime() / 1000;
   return { startHour, endHour };
 }
 function Bets() {
@@ -138,6 +140,7 @@ function Bets() {
     const now = new Date();
 
     const { startHour, endHour } = filterTimestampsByDay();
+    console.log(startHour, endHour);
     // console.log('day', currentTime, targetDay);
     const startOfWeekUnix = filterTimestampsByWeek();
     const f = sortedData!.filter((x) => {
@@ -181,7 +184,6 @@ function Bets() {
             <StatTable
               filter={timeFilter}
               setFilter={setTimeFilter}
-
               filteredBets={filteredBets}
               totalBets={allBets!}
             />
