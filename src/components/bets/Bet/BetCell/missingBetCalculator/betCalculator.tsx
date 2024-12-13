@@ -245,9 +245,11 @@ const BetCalculator = ({
           liability={backLiability}
           value={backOddsValue}
           type="back"
+          link={data.bet_info.bookie_link}
           updateValues={updateValues}
           updateValue={setBackOddsValue}
           setUpdate={setUpdate}
+          update={update}
           missingBet={missingBet?.missingBackBet}
         ></CalculatorSection>
         <CalculatorSection
@@ -256,9 +258,11 @@ const BetCalculator = ({
           liability={layLiability}
           value={layOddsValue}
           type="lay"
+          link={data.bet_info.exchange_link}
           updateValues={updateValues}
           updateValue={setLayOddsValue}
           setUpdate={setUpdate}
+          update={update}
           missingBet={missingBet?.missingLayBet}
         ></CalculatorSection>
         <ProfitTable

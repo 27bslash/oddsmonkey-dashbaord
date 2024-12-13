@@ -4,15 +4,20 @@ import Typography from '@mui/material/Typography';
 import { MatchObj } from './betCalculator';
 import CalculatorGroup from './partBet';
 import CalculatorTextField from './calculatorTextField';
+import { MouseEvent } from 'react';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 type CalculatorSectionProps = {
   matchArray: MatchObj['back'];
   total: number;
   liability: number;
   value: number;
   type: 'back' | 'lay';
+  link: string;
   updateValues: (stake: number, odds: number, type: 'back' | 'lay') => void;
   updateValue: React.Dispatch<React.SetStateAction<number>>;
   setUpdate?: React.Dispatch<React.SetStateAction<boolean>>;
+  update?: boolean;
   missingBet?: number;
 };
 const CalculatorSection = ({
@@ -20,13 +25,25 @@ const CalculatorSection = ({
   total,
   liability,
   type,
+  link,
   value,
   missingBet,
   updateValues,
   updateValue,
+  update,
   setUpdate,
 }: CalculatorSectionProps) => {
   const baseColor = type === 'lay' ? blue : green;
+  const openLink = (e: MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (!update) window.open(link, '_blank');
+    const target = e.target as HTMLElement;
+    console.log(e, target.textContent);
+    if (!target.textContent) {
+      return;
+    }
+    const betValue = target.textContent.replace('£', '');
+    navigator.clipboard.writeText(betValue);
+  };
   return (
     <>
       <Box
@@ -40,17 +57,7 @@ const CalculatorSection = ({
         padding={2}
         color={'black'}
       >
-        {/* <Typography
-          fontWeight={'bold'}
-          textTransform={'capitalize'}
-          justifyContent={'center'}
-          textAlign={'center'}
-          variant='h5'
-        >
-          {type}
-        </Typography> */}
-        {/* {matchArray.map((item, i) => { */}
-        {/* return ( */}
+
         <CalculatorGroup
           //   key={i}
           odds={matchArray.odds}
@@ -64,40 +71,91 @@ const CalculatorSection = ({
           setValue={updateValue}
           label="current odds"
         ></CalculatorTextField>
-        {/* <Typography fontWeight={'bold'} textTransform={'capitalize'}>
-          {type} wins: {(+total || 0).toFixed(2)}
-        </Typography>
-        <Typography fontWeight={'bold'} textTransform={'capitalize'}>
-          {type} liability: {(+liability || 0).toFixed(2)}
-        </Typography> */}
+
       </Box>
-      {missingBet && missingBet > 0 && (
-        <Typography
-          className="missing-bet-text"
-          fontWeight={'bold'}
-          textTransform={'capitalize'}
-          padding={2}
-          sx={{
-            backgroundColor: baseColor['900'],
-          }}
-        >
-          missing {type} bet:
-          <span
-            onClick={() => setUpdate!((prev) => !prev)}
-            style={{
-              marginLeft: '4px',
-              color: red['700'],
-              cursor: 'pointer',
-              userSelect: 'none',
+      {missingBet && missingBet > 0.01 && (
+        <>
+          <NestedText
+            bgColor={baseColor['900']}
+            color={red['700']}
+            firstStr={`missing ${type} bet:`}
+            secondStr={
+              <>
+                <span>
+                  £{+missingBet.toFixed(2) <= 0 ? 0 : missingBet.toFixed(2)}
+                </span>
+                <FileCopyIcon
+                  className="icon"
+                  sx={{ marginLeft: '5px', color: 'white', fontSize: '0.8rem' }}
+                />
+              </>
+            }
+            clickHandle={(
+              e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+            ) => {
+              openLink(e);
+              return setUpdate!((prev) => !prev);
             }}
-          >
-            £{+missingBet.toFixed(2) <= 0 ? 0 : missingBet.toFixed(2)}
-            <br></br>
-            {liability} {total}
-          </span>
-        </Typography>
+          />
+          {update && (
+            <>
+              <NestedText
+                bgColor={baseColor['900']}
+                color={red['700']}
+                firstStr="Liability:"
+                secondStr={`-£${liability.toFixed(2)}`}
+              />
+              <NestedText
+                bgColor={baseColor['900']}
+                color={green['300']}
+                firstStr="Total:"
+                secondStr={`+£${total.toFixed(2)}`}
+              />
+            </>
+          )}
+        </>
       )}
     </>
+  );
+};
+type NestedTextProps = {
+  firstStr: string;
+  secondStr: string | React.ReactElement;
+  bgColor: string;
+  color: string;
+  clickHandle?: any;
+};
+const NestedText = ({
+  firstStr,
+  secondStr,
+  bgColor,
+  color,
+  clickHandle,
+}: NestedTextProps) => {
+  return (
+    <Typography
+      className="missing-bet-text"
+      fontWeight={'bold'}
+      textTransform={'capitalize'}
+      padding={0.5}
+      paddingLeft={2}
+      sx={{
+        backgroundColor: bgColor,
+      }}
+    >
+      {firstStr}
+      <span
+        onClick={clickHandle}
+        style={{
+          marginLeft: '4px',
+          color: color,
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        {secondStr}
+      </span>
+    </Typography>
   );
 };
 export default CalculatorSection;

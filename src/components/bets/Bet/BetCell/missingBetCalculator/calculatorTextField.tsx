@@ -14,22 +14,31 @@ const CalculatorTextField = ({
   return (
     <TextField
       onChange={(e) => {
-        const inputValue = +(+e.target.value).toFixed(2);
-
-        setValue(inputValue);
+        const inputValue = +e.target.value.replace(/^0(?!\.)/, '');
+        const rounded = inputValue.toFixed(2);
+        console.log(inputValue, rounded, +rounded);
+        setValue(+rounded);
       }}
+      variant="filled"
       value={value}
       inputMode="numeric"
       type="number"
-      sx={{ background: bg, width: '49%', marginBottom: '10px' }}
+      sx={{
+        background: bg,
+        width: '49%',
+        marginBottom: '10px',
+        borderRadius: '5px',
+        borderBottom: 'none',
+      }}
       label={label}
-      inputProps={{ step: 0.01 }}
+      inputProps={{ step: 0.01, min: 0 }}
       InputLabelProps={{
         style: {
           color: 'black',
           fontSize: '1.2rem',
           fontWeight: 'bold',
           textTransform: 'capitalize',
+          borderBottom: 'none',
         },
       }}
     ></TextField>

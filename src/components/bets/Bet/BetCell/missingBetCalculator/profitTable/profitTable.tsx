@@ -27,20 +27,18 @@ const ProfitTable = ({
     <Table
       className="bet-calculator-profit-table"
       sx={{
-        backgroundColor: 'black', // Dark background for the table
-        overflow: 'hidden', // Ensure rounded corners work
-        borderRadius: '0 0 20px 20px', // Rounded corners on bottom only
+        backgroundColor: 'black',
+        overflow: 'hidden', 
+        borderRadius: '0 0 20px 20px', 
         border: 'solid 3px black',
       }}
     >
       <TableHead>
         <TableRow sx={{ backgroundColor: '#191e41' }}>
-          {/* Dark blue header */}
           <TableCell
             sx={{ color: 'white', padding: '10px 20px', fontWeight: 'bold' }}
           >
             <Typography textTransform="capitalize">
-              {/* Placeholder or logo */}
             </Typography>
           </TableCell>
           <TableCell

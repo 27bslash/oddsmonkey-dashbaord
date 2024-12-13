@@ -12,14 +12,22 @@ const ProfitTableRow = ({ total, liability, type }: profitTableRowProps) => {
   return (
     <TableRow
       sx={{
-        '&:nth-of-type(odd)': { backgroundColor: '#2e2e42' }, // Dark grey row
-        '&:nth-of-type(even)': { backgroundColor: '#1c1c2b' }, // Dark blue-grey row
-        '&:hover': { backgroundColor: '#3b3b5b' }, // Hover color for rows
-        color: 'white', // White text for readability
+        '&:nth-of-type(odd)': { backgroundColor: '#2e2e42' },
+        '&:nth-of-type(even)': { backgroundColor: '#1c1c2b' },
+        '&:hover': { backgroundColor: '#3b3b5b' },
+        color: 'white',
       }}
     >
       <TableCell sx={{ background: isBack ? green[300] : blue[300] }}>
-        <Typography fontWeight={'bold'}>{isBack ? 'Back Wins' : 'Lay Wins'}</Typography>
+        <Typography
+          sx={{
+            textShadow:
+              'none',
+          }}
+          fontWeight={'bold'}
+        >
+          {isBack ? 'Back Wins' : 'Lay Wins'}
+        </Typography>
       </TableCell>
       <TableCell sx={{ color: isBack ? green[700] : red[700] }}>
         <Typography>
